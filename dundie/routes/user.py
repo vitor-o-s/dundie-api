@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session, select
+from sqlalchemy.exc import IntegrityError
 
 from dundie.db import ActiveSession
 from dundie.models.user import User, UserRequest, UserResponse
@@ -33,8 +34,17 @@ async def get_user_by_username(
 @router.post("/", response_model=UserResponse, status_code=201, dependencies=[SuperUser])
 async def create_user(*, session: Session = ActiveSession, user: UserRequest):
     """Creates new user"""
+    # LBYL
+    if session.exec(select(User).where(User.username == user.username)).first():
+        raise HTTPException(status_code=409, detail="Username already taken")
+
     db_user = User.from_orm(user)  # transform UserRequest in User
     session.add(db_user)
-    session.commit()
+    # EAFP
+    try:
+        session.commit()
+    except IntegrityError:
+        raise HTTPException(status_code=500, detail="Database IntegrityError")
+
     session.refresh(db_user)
     return db_user
