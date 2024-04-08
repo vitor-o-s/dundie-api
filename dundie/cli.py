@@ -7,7 +7,7 @@ from dundie.models.user import generate_username
 from dundie.tasks.transaction import add_transaction
 from dundie.models.transaction import Transaction, Balance
 from .config import settings
-from .db import engine
+from .db import engine, SQLModel
 from .models import User
 
 main = typer.Typer(name="dundie CLI", add_completion=False)
@@ -110,3 +110,15 @@ def transaction(
         table.add_row(user.username, str(user_before), str(user.balance))
 
         Console().print(table)
+
+
+@main.command()
+def reset_db(
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Run with no confirmation"
+    )
+):
+    """Resets the database tables"""
+    force = force or typer.confirm("Are you sure?")
+    if force:
+        SQLModel.metadata.drop_all(engine)
