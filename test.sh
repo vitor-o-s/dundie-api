@@ -14,7 +14,8 @@ docker compose exec api alembic stamp base
 docker compose exec api alembic upgrade head
 
 # run tests
-docker compose exec api pytest -v -l --tb=short --maxfail=1 tests/
+# for some reason I still dont know some commands need explicit user param
+docker compose exec --user "$(id -u):$(id -g)" api pytest -v -l --tb=short --maxfail=1 tests/
 
 # Stop environment
 docker compose down
