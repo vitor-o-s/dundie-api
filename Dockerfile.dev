@@ -17,7 +17,6 @@ COPY . $APP_HOME
 RUN pip install --upgrade pip
 RUN pip install -r requirements-dev.txt
 RUN pip install -e .
-RUN pip show starlette
 
 RUN chown -R app:app $APP_HOME
 USER app
